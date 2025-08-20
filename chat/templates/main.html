@@ -49,6 +49,26 @@
         const messageInput = document.getElementById('message-input');
         const userListEl = document.getElementById('user-list');
 
+        function displayMessage(author, content) {
+            const messageEl = document.createElement('div');
+            messageEl.classList.add('message');
+            messageEl.innerHTML = `<span class="author">${author}:</span> ${content}`;
+            messagesEl.appendChild(messageEl);
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+        }
+
+        // --- FETCH DIJEL PORUKA ---
+        fetch('/chat/api/messages/')
+            .then(response => response.json())
+            .then(messages => {
+                messages.forEach(msg => {
+                    displayMessage(msg.owner, msg.content);
+                });
+                console.log('Historija poruka uspješno učitana.');
+            })
+            .catch(error => console.error('Greška pri učitavanju historije poruka:', error));
+        
+
         chatSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
             const type = data.type;
