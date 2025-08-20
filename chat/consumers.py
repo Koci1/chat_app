@@ -28,16 +28,20 @@ class ChatConsumer(AsyncWebsocketConsumer):
         Svi korisnici se dodaju u dict gdje se prati ko je usao i izasao iz chata.
         """
 
-        if self.room_name not in connected_users:
-            connected_users[self.room_name] = set()
-            connected_channels[self.room_name] = set()
-        
-        connected_users[self.room_name].add(self.username)
-        connected_channels[self.room_name].add(self.channel_name)
+        # if self.room_name not in connected_users:
+        #     connected_users[self.room_name] = set()
+        #     connected_channels[self.room_name] = set()
+
+        connected_users[self.username] = set()
+
+        connected_users[self.username] = self.channel_name
+    
+
+        #connected_users[self.room_name].add((self.username,self.channel_name))
 
         await self.channel_layer.group_send(self.room_name,{
             "type":"users_list",
-            "users":list(connected_users[self.room_name])
+            "users":list(connected_users)
         })
 
         await self.accept()
@@ -69,14 +73,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
             "message" : f"{self.username} has left group"
         })
 
-        connected_users[self.room_name].discard(self.username)
-        connected_channels[self.room_name].discard(self.channel_name)
+        if self.username in connected_users:
+            del connected_users[self.username]
 
         await self.channel_layer.group_send(
             self.room_name,
         {
             "type":"users_list",
-            "message": list(connected_users[self.room_name])
+            "message": list(connected_users)
         })
 
         await self.channel_layer.group_discard(
@@ -88,7 +92,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def users_list(self,event):
         await self.send(text_data=json.dumps({
             "type":"users_list",
-            "users":list(connected_users[self.room_name])
+            "users":list(connected_users)
         }))
 
 
@@ -117,5 +121,19 @@ class ChatConsumer(AsyncWebsocketConsumer):
     @sync_to_async
     def get_messages_from_db(self):
         Message.objects.all()
+
+
+
+pairs = {}
+
+class PeerToPeerConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        self.user1 = self.scope['url_route']['kwargs']['init_user'] 
+        self.user2 = self.scope['url_route']['kwargs']['point_user'] 
+        self.room_name=self.user1+"_"+self.user2
+
+        self.accept()
+        
+
 
 

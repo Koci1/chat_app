@@ -1,9 +1,8 @@
-from django.urls import path
-from .consumers import ChatConsumer
+from django.urls import path,re_path
 
-from django.urls import re_path
 from . import consumers
 
 websocket_urlpatterns = [
-    path(r"ws/<str:room>/", consumers.ChatConsumer.as_asgi()),
+    path("ws/<str:room>/", consumers.ChatConsumer.as_asgi()),
+    re_path(r"ws/chat/(?P<init_user>\w+)/(?P<point_user>\w+)/$", consumers.PeerToPeerConsumer.as_asgi()),
 ]

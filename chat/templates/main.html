@@ -138,27 +138,6 @@
 
         const chatSocket = new WebSocket('ws://' + window.location.host + '/ws/chat/');
 
-        // ----- Funkcija za prikaz poruka -----
-        function displayMessage(author, content) {
-            const messageEl = document.createElement('div');
-            messageEl.classList.add('message');
-            messageEl.innerHTML = `<span class="author">${author}:</span> ${content}`;
-            messagesEl.appendChild(messageEl);
-            messagesEl.scrollTop = messagesEl.scrollHeight;
-        }
-
-        // ----- Fetch historije poruka -----
-        fetch('/chat/api/messages/')
-            .then(response => response.json())
-            .then(messages => {
-                messages.forEach(msg => {
-                    displayMessage(msg.owner, msg.content);
-                });
-                console.log('Historija poruka uspješno učitana.');
-            })
-            .catch(error => console.error('Greška pri učitavanju historije poruka:', error));
-
-        // ----- Slanje poruka -----
         messageForm.addEventListener('submit', function (e) {
             e.preventDefault();
             const message = messageInput.value.trim();
@@ -195,12 +174,40 @@
                     const userItem = document.createElement('li');
                     userItem.textContent = username;
                     userListEl.appendChild(userItem);
+                    selectLi()
                 });
             } else if (type === 'username_recieve') {
                 my_username = data.user;
             }
         };
+
+        peerToPeerSockets = new Set()
+
+
+        function selectLi() {
+            document.querySelectorAll('li').forEach(obj => {
+                if (obj.textContent != my_username) {
+                    obj.addEventListener('click', () => {
+                        const websocket = new WebSocket('ws://' + window.location.host + '/ws/chat/'+my_username + '/' + obj.textContent +'/')  
+                        peerToPeerSockets.add(websocket);
+                        websocket.onopen = ()=>{
+                            console.log()
+                        }
+                    websocket.onmessage = (e) => {
+                    const data = JSON.parse(e.data);
+                    console.log("P2P poruka od " + my_username, data);
+                };
+
+                websocket.onclose = () => {
+                    console.log("P2P socket zatvoren sa " + my_username);
+                }
+                    })
+                }
+            })
+        }
+
     </script>
+
 </body>
 
 </html>
