@@ -1,8 +1,10 @@
 from channels.generic.websocket import AsyncWebsocketConsumer
 import json
 from asgiref.sync import sync_to_async
+from .models import Message
 
 connected_users = {}
+connected_channels = {}
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -11,8 +13,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
         Svaki korisnik ce biti primljen u globalni chat.
         Prilikom ulaska obavjestavaju se svi aktivni da se pridruzio chatu 
         """
-
-        print(self.scope['username'])
         self.room = self.scope['url_route']['kwargs']['room']
         self.room_name = 'chat_%s'%self.room
         self.username = self.scope['username']
@@ -24,18 +24,16 @@ class ChatConsumer(AsyncWebsocketConsumer):
             "message":f"{self.username} has joined the chat"
         })
 
-
         """
         Svi korisnici se dodaju u dict gdje se prati ko je usao i izasao iz chata.
-        Takoder, svi 
-        
         """
 
         if self.room_name not in connected_users:
             connected_users[self.room_name] = set()
+            connected_channels[self.room_name] = set()
         
         connected_users[self.room_name].add(self.username)
-
+        connected_channels[self.room_name].add(self.channel_name)
 
         await self.channel_layer.group_send(self.room_name,{
             "type":"users_list",
@@ -44,39 +42,53 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         await self.accept()
 
+        await self.send(text_data=json.dumps({
+            "type":"username_recieve",
+            "user":self.username
+        }))
+
+
     async def receive(self, text_data=None, bytes_data=None):
         data = json.loads(text_data)
-        print(data)
-
-
+        message = data["message"]
+        await self.channel_layer.group_send(self.room_name,{
+            "type":"chat_message",
+            "message":message,
+            "user":self.username
+        })
+        
     async def disconnect(self,code):
+        """
+        Kada korisnik napusti chat svi u chatu dobiju obavijest o napustanju i 
+        dobiju azuriranu listu aktivnih korisnika
+        """
         await self.channel_layer.group_send(self.room_name,{
             "type" : "user_group_status",
             "message" : f"{self.username} has left group"
         })
-        connected_users[self.room_name].discard(self.username)
 
-        await self.channel_layer.group_send(self.room_name,{
-            "type":"user_group_status",
-            "users":list(connected_users[self.room_name])
+        connected_users[self.room_name].discard(self.username)
+        connected_channels[self.room_name].discard(self.channel_name)
+
+        await self.channel_layer.group_send(
+            self.room_name,
+        {
+            "type":"users_list",
+            "message": list(connected_users[self.room_name])
         })
 
-        await self.channel_layer.group_discard(self.room_name,
+        await self.channel_layer.group_discard(
+            self.room_name,
             self.channel_name
         )
+
 
     async def users_list(self,event):
         await self.send(text_data=json.dumps({
             "type":"users_list",
-            "users": list(connected_users[self.room_name])
+            "users":list(connected_users[self.room_name])
         }))
 
-    async def user_left(self,event):
-        message = event["message"]
-        await self.send(text_data=json.dumps({
-            "type":"info_message",
-            "messsage":message
-        }))
 
     async def user_group_status(self,event):
         message = event["message"]
@@ -84,4 +96,19 @@ class ChatConsumer(AsyncWebsocketConsumer):
             "type":"info_message",
             'message':message
         }))
+
+    async def chat_message(self,event):
+        message = event["message"]
+        user = event["user"]
+        await self.send(text_data = json.dumps({
+            'type':"chat_message",
+            "message" : message,
+            "user" : user
+        }))
+
+
+    @sync_to_async
+    def save_message_to_db(self,user,content):
+        Message.objects.create(owner=user,content = content)
+
 

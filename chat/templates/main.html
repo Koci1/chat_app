@@ -31,17 +31,18 @@
         <h3>Aktivni korisnici</h3>
         <ul id="user-list"></ul>
     </div>
-
+    
     <div id="chat-container">
         <div id="messages"></div>
-
+        
         <form id="message-form">
             <input type="text" id="message-input" placeholder="Unesite poruku..." autocomplete="off">
             <button type="submit">Pošalji</button>
         </form>
     </div>
-
+    
     <script>
+        my_username = " ";
         const chatSocket = new WebSocket('ws://' + window.location.host + '/ws/chat/');
         const messagesEl = document.getElementById('messages');
         const messageForm = document.getElementById('message-form');
@@ -55,9 +56,12 @@
             if (type === 'chat_message') {
                 const messageEl = document.createElement('div');
                 messageEl.classList.add('message');
-                messageEl.innerHTML = `<span class="author">${data.author}:</span> ${data.message}`;
+                messageEl.innerHTML = `<span class="author">${data.user}:</span> ${data.message}`;
                 messagesEl.appendChild(messageEl);
                 messagesEl.scrollTop = messagesEl.scrollHeight;
+                if(data.user == my_username){
+                   messageEl.style.backgroundColor = 'black'
+                }
             } else if (type === 'info_message') {
                 const systemMessageEl = document.createElement('div');
                 systemMessageEl.classList.add('system-message');
@@ -70,9 +74,13 @@
                     const userItem = document.createElement('li');
                     userItem.textContent = username;
                     userListEl.appendChild(userItem);
-                });
+                });}
+            else if (type === 'username_recieve') {
+                my_username = data.user
             }
         };
+
+
 
         messageForm.addEventListener('submit', function(e) {
             e.preventDefault();
