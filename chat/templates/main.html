@@ -58,13 +58,13 @@
                 messageEl.innerHTML = `<span class="author">${data.author}:</span> ${data.message}`;
                 messagesEl.appendChild(messageEl);
                 messagesEl.scrollTop = messagesEl.scrollHeight;
-            } else if (type === 'system_message') {
+            } else if (type === 'info_message') {
                 const systemMessageEl = document.createElement('div');
                 systemMessageEl.classList.add('system-message');
                 systemMessageEl.textContent = data.message;
                 messagesEl.appendChild(systemMessageEl);
                 messagesEl.scrollTop = messagesEl.scrollHeight;
-            } else if (type === 'user_list') {
+            } else if (type === 'users_list') {
                 userListEl.innerHTML = '';
                 data.users.forEach(username => {
                     const userItem = document.createElement('li');
