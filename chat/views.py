@@ -6,8 +6,7 @@ from .paginations import MessagePagination
 from rest_framework.response import Response
 # Create your views here.
 def main(request):
-    return render(request,"main.html")
-
+    return render(request,"chat/main.html")
 
 class get_messages(ListAPIView):
     queryset = Message.objects.all()
