@@ -88,9 +88,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         Kada korisnik napusti chat svi u chatu dobiju obavijest o napustanju i 
         dobiju azuriranu listu aktivnih korisnika
         """
-
-        print("Korisnik se iskljucuje")
-
+        
         await self.channel_layer.group_send(self.room_name,{
             "type" : "user_group_status",
             "message" : f"{self.username} has left group"
@@ -172,15 +170,43 @@ class PeerToPeerConsumer(AsyncWebsocketConsumer):
         users_sorted = sorted([self.user1, self.user2])
         self.room_name = f"chat_{users_sorted[0]}_{users_sorted[1]}"
 
+        # await self.send(text_data = json.dumps({
+        #     'type':"info_message",
+        #     "message" : f"Pocinjete razgovor sa {self.user2}",
+        # }))
+
         # dodaj sebe u grupu
         await self.channel_layer.group_add(self.room_name, self.channel_name)
 
         # Prihvati konekciju
         await self.accept()
 
+        await self.channel_layer.send(
+            self.channel_name,
+            {
+                "type": "info_message", 
+                "message": f"Pocinjete razgovor sa {self.user2}",
+            }
+)
+
+
     async def disconnect(self, close_code):
         # Očisti grupu
+    # Obavijesti sve u grupi da se zatvaraju
+        await self.channel_layer.group_send(
+        self.room_name,
+        {
+            "type": "force_disconnect",
+            "message": f"Korisnik {self.user1} je napustio razgovor.",
+        }
+    )
+
+    # Očisti grupu za ovog korisnika
         await self.channel_layer.group_discard(self.room_name, self.channel_name)
+
+    async def force_disconnect(self, event):
+        print(event)
+        await self.close()
 
     async def receive(self, text_data):
         data = json.loads(text_data)
@@ -201,6 +227,13 @@ class PeerToPeerConsumer(AsyncWebsocketConsumer):
             "message": event["message"],
             "sender": event["sender"],
         }))
+
+    async def info_message(self, event):
+        await self.send(text_data=json.dumps({
+            "type":"info_message",
+            "message": event["message"],
+        }))
+
 
 
 

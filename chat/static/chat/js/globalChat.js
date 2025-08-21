@@ -2,6 +2,7 @@
 import { appendMessage, appendSystemMessage, updateUserList } from "./ui.js";
 import { startPrivateChat } from "./privateChat.js";
 
+export let liveMessages = []
 export let myUsername = " ";
 export const privateSockets = {};
 
@@ -22,9 +23,11 @@ export function initChat(messageInput, messageForm) {
         switch(data.type) {
             case 'chat_message':
                 appendMessage(data.user, data.message, myUsername);
+                liveMessages.push(data);
                 break;
             case 'info_message':
                 appendSystemMessage(data.message);
+                liveMessages.push(data);
                 break;
             case 'users_list':
                 updateUserList(data.users, (user) => {
