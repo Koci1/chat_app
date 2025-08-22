@@ -2,6 +2,10 @@
 import { appendMessage, appendSystemMessage, createPrivateChatBox } from "./ui.js";
 //import { liveMessages } from "./globalChat.js";
 
+
+
+
+let chatWrapper = document.querySelector("#chat-wrapper")
 export function startPrivateChat(otherUser, myUsername, privateSockets) {
     if (myUsername === otherUser || privateSockets[otherUser]) return;
 
@@ -11,6 +15,7 @@ export function startPrivateChat(otherUser, myUsername, privateSockets) {
     let chatBox = document.getElementById(`private_chat_${otherUser}`);
     if (!chatBox) {
         chatBox = createPrivateChatBox(otherUser, privatews, privateSockets);
+        chatWrapper.appendChild(chatBox)
     }
 
     const messagesDiv = chatBox.querySelector(".messages");
@@ -21,7 +26,8 @@ export function startPrivateChat(otherUser, myUsername, privateSockets) {
         const data = JSON.parse(event.data);
         if(data.type === "info_message"){
              showMessage(data.message)
-            // const p = document.createElement("p");
+            // const p = document.createElement("
+            // p");
             // p.textContent = `${data.message}`;
             // messagesDiv.appendChild(p);
             // messagesDiv.scrollTop = messagesDiv.scrollHeight;
@@ -38,14 +44,23 @@ export function startPrivateChat(otherUser, myUsername, privateSockets) {
         // }
 
     };
-
+// white-space: normal;
+//             word-break: break-word;
 
     function showMessage(message,sender = null){
         const p = document.createElement("p");
+        p.style.whiteSpace = "normal"
+        p.style.wordBreak = 'break-word'
         if(sender){
             p.textContent = `${sender}: ${message}`;
+            if(sender == myUsername){
+                p.classList.add("private-owner-message")
+            }else{
+                p.classList.add("private-message")
+            }
         }else{
             p.textContent = `${message}`;
+            
         }
         messagesDiv.appendChild(p);
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
