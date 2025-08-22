@@ -152,10 +152,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
         Message.objects.create(owner=user,content = content)
 
 
-    # @sync_to_async
-    # def get_messages_from_db(self):
-    #     Message.objects.all()
-
 
 
 pairs = {}
@@ -174,15 +170,8 @@ class PeerToPeerConsumer(AsyncWebsocketConsumer):
         users_sorted = sorted([self.user1, self.user2])
         self.room_name = f"chat_{users_sorted[0]}_{users_sorted[1]}"
 
-        # await self.send(text_data = json.dumps({
-        #     'type':"info_message",
-        #     "message" : f"Pocinjete razgovor sa {self.user2}",
-        # }))
-
-        # dodaj sebe u grupu
         await self.channel_layer.group_add(self.room_name, self.channel_name)
 
-        # Prihvati konekciju
         await self.accept()
 
         await self.channel_layer.send(
@@ -202,7 +191,6 @@ class PeerToPeerConsumer(AsyncWebsocketConsumer):
         self.room_name,
         {
             "type": "force_disconnect",
-            #"message": f"Korisnik {self.user1} je napustio razgovor.",
         }
     )
 
