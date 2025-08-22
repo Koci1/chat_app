@@ -1,4 +1,4 @@
-// chat/static/chat/js/globalChat.js
+
 import { appendMessage, appendSystemMessage, updateUserList } from "./ui.js";
 import { startPrivateChat } from "./privateChat.js";
 

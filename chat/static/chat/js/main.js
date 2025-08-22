@@ -1,4 +1,4 @@
-// chat/static/chat/js/main.js
+
 import { initChat } from "./globalChat.js";
 import { messagesEl } from "./ui.js";
 

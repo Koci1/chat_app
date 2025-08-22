@@ -1,6 +1,5 @@
-// chat/static/chat/js/privateChat.js
+
 import { appendMessage, appendSystemMessage, createPrivateChatBox } from "./ui.js";
-//import { liveMessages } from "./globalChat.js";
 
 
 
@@ -26,26 +25,13 @@ export function startPrivateChat(otherUser, myUsername, privateSockets) {
         const data = JSON.parse(event.data);
         if(data.type === "info_message"){
              showMessage(data.message)
-            // const p = document.createElement("
-            // p");
-            // p.textContent = `${data.message}`;
-            // messagesDiv.appendChild(p);
-            // messagesDiv.scrollTop = messagesDiv.scrollHeight;
         }
         else if (data.sender && data.message) {
             showMessage(data.message,data.sender)
-            // const p = document.createElement("p");
-            // p.textContent = `${data.sender}: ${data.message}`;
-            // messagesDiv.appendChild(p);
-            // messagesDiv.scrollTop = messagesDiv.scrollHeight;
         }
-        // else if(data.type === "force_disconnect"){
-        //     showMessage(data.message)
-        // }
+
 
     };
-// white-space: normal;
-//             word-break: break-word;
 
     function showMessage(message,sender = null){
         const p = document.createElement("p");
@@ -68,11 +54,9 @@ export function startPrivateChat(otherUser, myUsername, privateSockets) {
 
     privatews.onclose = () => {
         appendSystemMessage(`Privatni chat sa ${otherUser} je zavrsen`)
-        // console.log("Privatni chat sa", otherUser, "zatvoren");
         delete privateSockets[otherUser];
         chatBox.remove();
-
-        // pomjeri ostale chatove lijevo
+        
         const remainingChats = Object.keys(privateSockets);
         remainingChats.forEach((user, index) => {
             const box = document.getElementById(`private_chat_${user}`);

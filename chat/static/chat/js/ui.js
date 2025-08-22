@@ -47,10 +47,8 @@ export function updateUserList(users, startPrivateChatCallback) {
         icon.classList.add('fa-solid', 'fa-circle', 'user-icon'); // font awesome user icon
         icon.style.marginRight = '8px';
 
-        // tekst korisnika
         const text = document.createTextNode(username);
-
-        // dodaj sve u li
+        
         userItem.appendChild(text);
         userItem.appendChild(icon);
 
@@ -59,55 +57,12 @@ export function updateUserList(users, startPrivateChatCallback) {
     });
 }
 
-// export function createPrivateChatBox(otherUser, privatews, privateSockets) {
-//     const chatBoxId = `private_chat_${otherUser}`;
-//     const chatBox = document.createElement("div");
-//     chatBox.id = chatBoxId;
-//     chatBox.classList.add("mini-chat");
-//     chatBox.style.position = "fixed";
-//     chatBox.style.bottom = "10px";
-
-//     const chatUsers = Object.keys(privateSockets);
-//     chatBox.style.right = (chatUsers.indexOf(otherUser) * 220 + 10) + "px";
-
-//     chatBox.style.width = "200px";
-//     chatBox.style.height = "250px";
-//     chatBox.style.border = "1px solid #ccc";
-//     chatBox.style.background = "#f9f9f9";
-//     chatBox.style.padding = "5px";
-//     chatBox.style.display = "flex";
-//     chatBox.style.flexDirection = "column";
-
-//     chatBox.innerHTML = `
-//         <h4 style="margin:0; font-size:14px;">Chat sa ${otherUser}</h4>
-//         <div class="messages" style="flex:1; overflow-y:auto; border:1px solid #ddd; padding:2px; margin:2px 0;"></div>
-//         <input type="text" placeholder="Poruka..." style="flex:none;" />
-//         <button style="flex:none;">Pošalji</button>
-//     `;
-
-//     document.body.appendChild(chatBox);
-
-//     const input = chatBox.querySelector("input");
-//     const btn = chatBox.querySelector("button");
-
-//     btn.onclick = () => {
-//         const msg = input.value.trim();
-//         if (msg) {
-//             privatews.send(JSON.stringify({ message: msg }));
-//             input.value = "";
-//         }
-//     };
-
-//     return chatBox;
-// }
-
-
 export function createPrivateChatBox(otherUser, privatews, privateSockets) {
     const chatBoxId = `private_chat_${otherUser}`;
     const chatBox = document.createElement("div");
     chatBox.id = chatBoxId;
     chatBox.classList.add("mini-chat");
-    chatBox.classList.add("chat-box"); // OVO JE BITNO ZA MINIMIZE
+    chatBox.classList.add("chat-box");
 
     const chatUsers = Object.keys(privateSockets);
     chatBox.style.right = (chatUsers.indexOf(otherUser) * 220 + 10) + "px";

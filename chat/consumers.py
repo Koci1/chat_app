@@ -75,6 +75,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         "init_user" : self.from_user
                     }
                 )
+
+        """
+        Preko private_chat_open konektamo i drugog korisnika sa kojim se treba uspostaviti komunikacija
+        """
     
     async def private_chat_open(self,event):
         await self.send(text_data=json.dumps({
@@ -191,28 +195,26 @@ class PeerToPeerConsumer(AsyncWebsocketConsumer):
 
 
     async def disconnect(self, close_code):
-        # Očisti grupu
-    # Obavijesti sve u grupi da se zatvaraju
+        """
+        Kada se jedan korisnik odspaja odspoji se i drugi automatski
+        """
         await self.channel_layer.group_send(
         self.room_name,
         {
             "type": "force_disconnect",
-            "message": f"Korisnik {self.user1} je napustio razgovor.",
+            #"message": f"Korisnik {self.user1} je napustio razgovor.",
         }
     )
 
-    # Očisti grupu za ovog korisnika
         await self.channel_layer.group_discard(self.room_name, self.channel_name)
 
     async def force_disconnect(self, event):
-        print(event)
         await self.close()
 
     async def receive(self, text_data):
         data = json.loads(text_data)
         message = data['message']
 
-        # Pošalji poruku u room grupu
         await self.channel_layer.group_send(
             self.room_name,
             {
