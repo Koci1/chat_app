@@ -5,7 +5,9 @@ export const userListEl = document.getElementById('user-list');
 export function appendMessage(user, message, myUsername) {
     const messageEl = document.createElement('div');
     messageEl.classList.add('message');
-    messageEl.innerHTML = `<p class="author">${user}</p><p>:</p><p class="content-message">${message}</p>`;
+    messageEl.innerHTML = `<p class="author">${user}</p>
+                            <p>:</p>
+                            <p class="content-message">${message}</p>`;
     messagesEl.appendChild(messageEl);
     messagesEl.scrollTop = messagesEl.scrollHeight;
     if (user === myUsername) messageEl.classList.add("owner");
@@ -28,10 +30,10 @@ document.addEventListener("click", function (e) {
 
         if (isHidden) {
             content.style.display = "flex";
-            e.target.textContent = "–"; 
+            e.target.textContent = "–";
         } else {
             content.style.display = "none";
-            e.target.textContent = "+"; 
+            e.target.textContent = "+";
         }
     }
 });
@@ -48,7 +50,7 @@ export function updateUserList(users, startPrivateChatCallback) {
         icon.style.marginRight = '8px';
 
         const text = document.createTextNode(username);
-        
+
         userItem.appendChild(text);
         userItem.appendChild(icon);
 
@@ -78,8 +80,8 @@ export function createPrivateChatBox(otherUser, privatews, privateSockets) {
     <div class="chat-content" style="display:flex; flex-direction:column; height:200px;">
         <div class="messages" style="flex:1; overflow-y:auto; padding:4px; margin:2px 0; background-color:#2A2A40; color:white; font-size:13px; border-radius:4px;"></div>
         <div style="display:flex; gap:5px; margin-top:5px;">
-            <input type="text" placeholder="Poruka..." style="flex:1; color:white; border:none; background-color:#2A2A40; padding:5px; border-radius:4px;" />
-            <button class="send" style="background-color:#2A2A40; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">Pošalji</button>
+            <input type="text" placeholder="Type..." style="flex:1; color:white; border:none; background-color:#2A2A40; padding:5px; border-radius:4px;" />
+            <button class="send" style="background-color:#2A2A40; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">SEND</button>
         </div>
     </div>
 `;
@@ -91,13 +93,22 @@ export function createPrivateChatBox(otherUser, privatews, privateSockets) {
     const closeBtn = chatBox.querySelector(".close-chat");
     const minimizeBtn = chatBox.querySelector(".minimize-chat");
 
-    sendBtn.onclick = () => {
+    function sendMessage() {
         const msg = input.value.trim();
         if (msg) {
             privatews.send(JSON.stringify({ message: msg }));
             input.value = "";
         }
-    };
+    }
+
+    input.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+            event.preventDefault()
+            sendMessage()
+        }
+    })
+
+    sendBtn.onclick = sendMessage
 
     closeBtn.onclick = () => {
         if (privatews.readyState === WebSocket.OPEN) {

@@ -1,9 +1,7 @@
 from channels.generic.websocket import AsyncWebsocketConsumer
 import json
-from asgiref.sync import sync_to_async
-from chat.models import Message
 from .services.chat_service import ChatService
-
+from .constants import INFO_MESSAGE,USERS_LIST,USER_GROUP_STATUS,USERNAME_RECIEVE,USERNAME,USER_JOINED_CHAT,HAS_LEFT_GROUP,CHAT_MESSAGE,OPEN_CHAT,PRIVATE_CHAT_OPEN,MESSAGE,FORCE_DISCONNECT,CONVERSATION_START_WITH
 connected_users = {}
 connected_channels = {}
 
@@ -16,13 +14,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
         """
         self.room = self.scope['url_route']['kwargs']['room']
         self.room_name = 'chat_%s'%self.room
-        self.username = self.scope['username']
+        self.username = self.scope[USERNAME]
 
         await self.channel_layer.group_add(self.room_name,self.channel_name)
 
         await self.channel_layer.group_send(self.room_name,{
-            "type":"user_group_status",
-            "message":f"{self.username} has joined the chat"
+            "type":USER_GROUP_STATUS,
+            MESSAGE:f"{self.username}{USER_JOINED_CHAT}"
         })
 
         """
@@ -33,14 +31,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
     
 
         await self.channel_layer.group_send(self.room_name,{
-            "type":"users_list",
+            "type":USERS_LIST,
             "users":list(connected_users)
         })
 
         await self.accept()
 
         await self.send(text_data=json.dumps({
-            "type":"username_recieve",
+            "type":USERNAME_RECIEVE,
             "user":self.username
         }))
 
@@ -53,16 +51,17 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
 
         data = json.loads(text_data)
-        if data.get("message"):
-            message = data["message"]
+        if data.get(MESSAGE):
+            message = data[MESSAGE]
+            print(data)
             await ChatService.save_message(user = self.username,content = message)
             await self.channel_layer.group_send(self.room_name,{
-                "type":"chat_message",
-                "message":message,
+                "type":CHAT_MESSAGE,
+                MESSAGE:message,
                 "sender":self.username
             })
 
-        elif data.get("type") == 'private_chat_open':
+        elif data.get("type") == PRIVATE_CHAT_OPEN:
             self.to_user = data.get("to")
             self.from_user = data.get("from")
             self.type = data.get('type')
@@ -71,18 +70,18 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 await self.channel_layer.send(
                     self.from_user_channel_name,
                     {
-                        "type" : self.type, #private_chat_open 
+                        "type" : self.type,
                         "init_user" : self.from_user
                     }
                 )
 
         """
-        Preko private_chat_open konektamo i drugog korisnika sa kojim se treba uspostaviti komunikacija
+        Preko private_chat_open spajaom i drugog korisnika sa kojim se treba uspostaviti komunikacija
         """
     
     async def private_chat_open(self,event):
         await self.send(text_data=json.dumps({
-            "type":"open_chat",
+            "type":OPEN_CHAT,
             "init_user" : event["init_user"]
         }))
 
@@ -94,8 +93,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
         """
         
         await self.channel_layer.group_send(self.room_name,{
-            "type" : "user_group_status",
-            "message" : f"{self.username} has left group"
+            "type" : USER_GROUP_STATUS,
+            "message" : f"{self.username} {HAS_LEFT_GROUP}"
         })
 
         if self.username in connected_users:
@@ -104,8 +103,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
         await self.channel_layer.group_send(
             self.room_name,
         {
-            "type":"users_list",
-            "message": list(connected_users)
+            "type":USERS_LIST,
+            MESSAGE: list(connected_users)
         })
 
         await self.channel_layer.group_discard(
@@ -119,7 +118,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         Svakom korisnku se prilikom prijave novog korisnika osvjezi lista
         """
         await self.send(text_data=json.dumps({
-            "type":"users_list",
+            "type":USERS_LIST,
             "users":list(connected_users)
         }))
 
@@ -127,16 +126,16 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def user_group_status(self,event):
         message = event["message"]
         await self.send(text_data=json.dumps({
-            "type":"info_message",
-            'message':message
+            "type":INFO_MESSAGE,
+            MESSAGE:message
         }))
 
     async def chat_message(self,event):
-        message = event["message"]
+        message = event[MESSAGE]
         sender = event["sender"]
         await self.send(text_data = json.dumps({
-            'type':"chat_message",
-            "message" : message,
+            'type':CHAT_MESSAGE,
+            MESSAGE : message,
             "user" : sender
         }))
 
@@ -145,11 +144,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
     """
     Metode za pohranu i dohvatanje poruka sa baze 
     U bazu su ukljucene samo poruke korisnika, a nisu ukljucene system poruke
-    
     """
-    @sync_to_async
-    def save_message_to_db(self,user,content):
-        Message.objects.create(owner=user,content = content)
+    # @sync_to_async
+    # def save_message_to_db(self,user,content):
+    #     Message.objects.create(owner=user,content = content)
 
 
 
@@ -177,8 +175,8 @@ class PeerToPeerConsumer(AsyncWebsocketConsumer):
         await self.channel_layer.send(
             self.channel_name,
             {
-                "type": "info_message", 
-                "message": f"Pocinjete razgovor sa {self.user2}",
+                "type": INFO_MESSAGE, 
+                MESSAGE: f"{CONVERSATION_START_WITH} {self.user2}",
             }
 )
 
@@ -190,7 +188,7 @@ class PeerToPeerConsumer(AsyncWebsocketConsumer):
         await self.channel_layer.group_send(
         self.room_name,
         {
-            "type": "force_disconnect",
+            "type": FORCE_DISCONNECT,
         }
     )
 
@@ -201,27 +199,27 @@ class PeerToPeerConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data):
         data = json.loads(text_data)
-        message = data['message']
+        message = data[MESSAGE]
 
         await self.channel_layer.group_send(
             self.room_name,
             {
-                "type": "chat_message",
-                "message": message,
+                "type": CHAT_MESSAGE,
+                MESSAGE: message,
                 "sender": self.user1,
             }
         )
 
     async def chat_message(self, event):
         await self.send(text_data=json.dumps({
-            "message": event["message"],
+            MESSAGE: event[MESSAGE],
             "sender": event["sender"],
         }))
 
     async def info_message(self, event):
         await self.send(text_data=json.dumps({
-            "type":"info_message",
-            "message": event["message"],
+            "type":INFO_MESSAGE,
+            MESSAGE: event[MESSAGE],
         }))
 
 

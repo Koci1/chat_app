@@ -1,4 +1,5 @@
 from .utils import generate_username
+from .constants import USERNAME
 
 
 class RandomUsernameMiddleware:
@@ -6,6 +7,6 @@ class RandomUsernameMiddleware:
         self.inner = inner
 
     async def __call__(self,scope,receive,send):
-        scope["username"] = generate_username()
+        scope[USERNAME] = generate_username()
 
         return await self.inner(scope,receive,send)
