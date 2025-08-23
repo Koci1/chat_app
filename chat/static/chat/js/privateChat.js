@@ -19,12 +19,12 @@ export function startPrivateChat(otherUser, myUsername, privateSockets) {
 
     const messagesDiv = chatBox.querySelector(".messages");
 
-    privatews.onopen = () => console.log("Privatni chat sa", otherUser, "otvoren");
+    // privatews.onopen = () => console.log("Privatni chat sa", otherUser, "otvoren");
 
     privatews.onmessage = (event) => {
         const data = JSON.parse(event.data);
         if(data.type === "info_message"){
-             showMessage(data.message)
+            showMessage(data.message)
         }
         else if (data.sender && data.message) {
             showMessage(data.message,data.sender)
@@ -53,7 +53,7 @@ export function startPrivateChat(otherUser, myUsername, privateSockets) {
     }
 
     privatews.onclose = () => {
-        appendSystemMessage(`Privatni chat sa ${otherUser} je zavrsen`)
+        appendSystemMessage(`Private chat with ${otherUser} has ended.`)
         delete privateSockets[otherUser];
         chatBox.remove();
         

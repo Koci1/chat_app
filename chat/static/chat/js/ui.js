@@ -2,12 +2,15 @@
 export const messagesEl = document.getElementById('messages');
 export const userListEl = document.getElementById('user-list');
 
-export function appendMessage(user, message, myUsername) {
+export function appendMessage(user, message,time, myUsername) {
     const messageEl = document.createElement('div');
+    let time_form = new Date(time);
     messageEl.classList.add('message');
     messageEl.innerHTML = `<p class="author">${user}</p>
-                            <p>:</p>
-                            <p class="content-message">${message}</p>`;
+                            <p style="margin-bottom:auto;">:</p>
+                            <p class="content-message">${message}</p>
+                            <p style="font-size: 10px;min-width:fit-content;margin-top: auto; ">${time_form.toLocaleString()}</p>
+                            `;
     messagesEl.appendChild(messageEl);
     messagesEl.scrollTop = messagesEl.scrollHeight;
     if (user === myUsername) messageEl.classList.add("owner");

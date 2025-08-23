@@ -2,6 +2,8 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 import json
 from .services.chat_service import ChatService
 from .constants import INFO_MESSAGE,USERS_LIST,USER_GROUP_STATUS,USERNAME_RECIEVE,USERNAME,USER_JOINED_CHAT,HAS_LEFT_GROUP,CHAT_MESSAGE,OPEN_CHAT,PRIVATE_CHAT_OPEN,MESSAGE,FORCE_DISCONNECT,CONVERSATION_START_WITH
+from django.utils import timezone
+import json
 connected_users = {}
 connected_channels = {}
 
@@ -53,12 +55,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
         data = json.loads(text_data)
         if data.get(MESSAGE):
             message = data[MESSAGE]
-            print(data)
             await ChatService.save_message(user = self.username,content = message)
             await self.channel_layer.group_send(self.room_name,{
                 "type":CHAT_MESSAGE,
                 MESSAGE:message,
-                "sender":self.username
+                "sender":self.username,
+                "timestamp":timezone.now()
             })
 
         elif data.get("type") == PRIVATE_CHAT_OPEN:
@@ -133,10 +135,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def chat_message(self,event):
         message = event[MESSAGE]
         sender = event["sender"]
+        timestamp = event["timestamp"]
         await self.send(text_data = json.dumps({
             'type':CHAT_MESSAGE,
             MESSAGE : message,
-            "user" : sender
+            "user" : sender,
+            "timestamp" : timestamp.isoformat()
         }))
 
 

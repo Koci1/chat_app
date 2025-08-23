@@ -57,7 +57,7 @@ function renderMessage(){
     buffer.forEach(obj => {
         let copy = [...obj];
         copy.reverse().forEach(msg => {
-            appendMessage(msg.owner, msg.content, myUsername);
+            appendMessage(msg.owner, msg.content,msg.timestamp, myUsername);
         });
     });
 

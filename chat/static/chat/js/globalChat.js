@@ -20,9 +20,10 @@ export function initChat(messageInput, messageForm) {
 
     chatSocket.onmessage = (e) => {
         const data = JSON.parse(e.data);
+        console.log(data)
         switch(data.type) {
             case 'chat_message':
-                appendMessage(data.user, data.message, myUsername);
+                appendMessage(data.user, data.message,data.timestamp, myUsername);
                 liveMessages.push(data);
                 break;
             case 'info_message':
