@@ -102,6 +102,7 @@ body {
     width: fit-content;
     word-break: break-word;
     gap:5px;
+    position: relative;
 }
 
 .message .author {

@@ -9,7 +9,7 @@ export function appendMessage(user, message,time, myUsername) {
     messageEl.innerHTML = `<p class="author">${user}</p>
                             <p style="margin-bottom:auto;">:</p>
                             <p class="content-message">${message}</p>
-                            <p style="font-size: 10px;min-width:fit-content;margin-top: auto; ">${time_form.toLocaleString()}</p>
+                            <p style="font-size: 10px;min-width:fit-content;margin-top: auto; postion:absoulte;right:0;bottom:0">${time_form.toLocaleString()}</p>
                             `;
     messagesEl.appendChild(messageEl);
     messagesEl.scrollTop = messagesEl.scrollHeight;
